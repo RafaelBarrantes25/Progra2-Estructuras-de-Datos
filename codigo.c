@@ -38,7 +38,28 @@ void intercambiar(char **a, char **b){
     *b = temporal;
 }
 
-int insertar_en_montículo(montículo *árbol){
+//Esto añade la nueva línea como el árbol heap solicita, que es buscando al padre y
+//poniéndose en la posición (i-1)/2
+void meter_arriba(montículo *árbol, int índice){
+    int padre = (índice-1)/2;
+
+    
+}
+
+void insertar_en_montículo(montículo *árbol, char *línea_nueva){
+    if(árbol -> tamaño >= árbol -> capacidad){
+        printf("El árbol ya está lleno\n");
+        free(línea_nueva);
+        return;
+    }
+    
+    árbol -> array[árbol->tamaño] = línea_nueva;
+    meter_arriba(árbol, árbol->tamaño);
+    árbol->tamaño++;
+    return;
+}
+
+int crear_línea(montículo *árbol){
     //Basado en https://www.youtube.com/watch?v=eIlcl-mt3tg
     FILE *archivo = fopen("archivo.txt","r");
 
@@ -63,7 +84,10 @@ int insertar_en_montículo(montículo *árbol){
         //Se crea el espacio para la línea nueva del tamaño del buffer +1 por el \0
         char *nueva_línea = (char *)malloc(strlen(buffer)+1);
 
+
         strcpy(nueva_línea,buffer);
+        insertar_en_montículo(árbol, nueva_línea);
+
     }
     fclose(archivo);
     return 0;
