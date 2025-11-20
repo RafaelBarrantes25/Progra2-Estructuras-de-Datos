@@ -38,8 +38,32 @@ void intercambiar(char **a, char **b){
     *b = temporal;
 }
 
+int escoger_orden(char *texto1, char *texto2){
+    int elección = 0;
+    printf("¿Qué tipo de ordenamiento quiere hacer?\n");
+    printf("1. Por título\n2. Por tamaño del título\n3. Por nombre del archivo\n4. Por definir\n");
+    scanf("%d",&elección);
+    
+    if(elección == 1){
+        return 0;
+    }
+    else if(elección == 2){
+        return 0;
+    }
+    else if(elección == 3){
+        return 0;
+    }
+    else if(elección == 4){
+        return 0;
+    }
+    else{
+        printf("Esa no es una opción\n");
+        return escoger_orden(texto1,texto2);
+    }
+}
+
 //Esto añade la nueva línea como el árbol heap solicita, que es buscando al padre y
-//poniéndose en la posición (i-1)/2
+//poniéndose en la posición. (i-1)/2, es la posición del padre
 void meter_arriba(montículo *árbol, int índice){
     int padre = (índice-1)/2;
 
@@ -99,4 +123,5 @@ void ordenar_alfabético(montículo *árbol, int i){
 
 void main(){
     montículo *arbolito = crear_montículo(200);
+    escoger_orden("hola","");
 }
