@@ -92,7 +92,7 @@ int ordenador(char *texto1, char *texto2,int elección){
     char *archivo1 = token1[3];
 
     char *archivo2 = token2[3];
-    //Revisar el link de arriba de illinois, ese explica cómo sirve
+    //Revisar el link de arriba, el de illinois, ese explica cómo sirve
     //Pero básicamente, reemplaza | por un nulo y guarda puntero
     //al inicio de cada parte, entonces token[0] es el nombre,
     //[1] apellidos y así
