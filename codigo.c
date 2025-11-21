@@ -104,8 +104,10 @@ int ordenador(char *texto1, char *texto2){
     char *token1[6] = {0};
     char *token2[6] = {0};
 
+
+    //Es esencial que esto esté en este orden, lo
+    //aprendí por las malas
     token1[0] = strtok(título1,DELIMITADOR);
-    
     for(int i = 1; i < 6; i++){
         token1[i] = strtok(NULL,DELIMITADOR);
     }
