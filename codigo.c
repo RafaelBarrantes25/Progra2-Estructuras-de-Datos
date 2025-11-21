@@ -8,6 +8,15 @@
 //Para tokenizar, que no haya que poner el "|" cada vez
 const char *DELIMITADOR = "|";
 
+//Variable global, almacena el tipo de ordenamiento que se quiere hacer
+//1 si es por títuloo, 2 si es por por tamaño de título,
+//3 si es por nombre del archivo, 4 si es por definir
+int elección = 0;
+
+
+
+
+
 typedef struct montículo{
     char **array;
     int tamaño;      //Elementos actuales
@@ -24,7 +33,7 @@ montículo *crear_montículo(int capacidad){
     árbol -> tamaño = 0;
     árbol -> capacidad = capacidad;
 
-    árbol -> array = (char **)malloc(sizeof(char *));
+    árbol -> array = (char **)malloc(capacidad * sizeof(char *));
     
     if(!árbol->array){
         free(árbol);
@@ -39,12 +48,12 @@ void intercambiar(char **a, char **b){
     *a = *b;
     *b = temporal;
 }
+
 int escoger_orden(){
-    int elección = 0;
     printf("¿Qué tipo de ordenamiento quiere hacer?\n");
     printf("1. Por título\n2. Por tamaño del título\n3. Por nombre del archivo\n4. Por definir\n");
     scanf("%d",&elección);
-    if(elección >= 1 || elección <= 4){
+    if(elección >= 1 && elección <= 4){
     return elección;
     }
     else{
@@ -56,7 +65,7 @@ int escoger_orden(){
 
 //basado en https://www.sanfoundry.com/c-program-count-words-in-sentence/
 
-int contar_palabras(char * string){
+int contar_palabras(const char * string){
     int contador = 0;
     char s[200];
     strcpy(s, string);
@@ -72,38 +81,43 @@ int contar_palabras(char * string){
     return contador;
 }
 
-int ordenador(char *texto1, char *texto2,int elección){
+int ordenador(char *texto1, char *texto2){
     //Puse todo esto afuera porque sino había que copiar y pegar
     //todo en cada if, no conviene
 
     //strtok modifica string original, entonces se crean copias
-    char título1[2048];
-    char título2[2048];
+    char título1[TAMAÑO_BUFFER];
+    char título2[TAMAÑO_BUFFER];
     strcpy(título1,texto1);
     strcpy(título2,texto2);
 
-    //Hay que tokenizar la string 
+    //Hay que tokenizar la string
     //https://www.geeksforgeeks.org/cpp/string-tokenization-in-c/
     //https://systems-encyclopedia.cs.illinois.edu/articles/c-strtok/
-    char *token1[2048];
-    char *token2[2048];
-
-    //la ubicación del archivo
-    char *archivo1 = token1[3];
-
-    char *archivo2 = token2[3];
     //Revisar el link de arriba, el de illinois, ese explica cómo sirve
     //Pero básicamente, reemplaza | por un nulo y guarda puntero
     //al inicio de cada parte, entonces token[0] es el nombre,
     //[1] apellidos y así
 
-    for(int i = 1; i < 2048; i++){
+
+    //6 porque son 6 campos
+    char *token1[6] = {0};
+    char *token2[6] = {0};
+
+    token1[0] = strtok(título1,DELIMITADOR);
+    
+    for(int i = 1; i < 6; i++){
         token1[i] = strtok(NULL,DELIMITADOR);
     }
-    for(int i = 1; i < 2048; i++){
+    token2[0] = strtok(título2,DELIMITADOR);
+    for(int i = 1; i < 6; i++){
         token2[i] = strtok(NULL,DELIMITADOR);
     }
 
+    //la ubicación del archivo
+    char *archivo1 = token1[3];
+    char *archivo2 = token2[3];
+    
     //Ordenar por título alfabéticamente
     if(elección == 1){
         /*
@@ -155,7 +169,19 @@ int ordenador(char *texto1, char *texto2,int elección){
 void meter_arriba(montículo *árbol, int índice){
     int padre = (índice-1)/2;
 
-    
+    /*
+    La función ordenador devuelve negativo si el primero es
+    menor, por ende, como es una min heap, se intercambia
+    */
+    int comprobar_intercambiar = ordenador(árbol->array[índice],árbol->array[padre]);
+
+    while(índice > 0 && comprobar_intercambiar < 0){
+        //se intercambian si el que se acaba de insertar va de primero
+        intercambiar(&árbol->array[índice],&árbol->array[padre]);
+
+        índice = padre;
+        padre = (índice-1)/2;
+    }
 }
 
 void insertar_en_montículo(montículo *árbol, char *línea_nueva){
@@ -204,13 +230,31 @@ int crear_línea(montículo *árbol){
     fclose(archivo);
     return 0;
 }
+//se usa const para evitar modificaciones
+void imprimir_línea(const char *línea){
+    char copia_string[TAMAÑO_BUFFER];
+    strcpy(copia_string,línea);
 
-void ordenar_alfabético(montículo *árbol, int i){
-    
+    char *nombre = strtok(copia_string,DELIMITADOR);
+    char *apellidos = strtok(NULL, DELIMITADOR);
+    char *título = strtok(NULL,DELIMITADOR);
+
+    //acá se puede cambiar formato según la opción escogida
+    //if(elección blabla)
+
+    printf("%s, %s     %s\n",apellidos,nombre,título);
+}
+
+void imprimir_árbol(montículo *árbol){
+    for (int i = 0; i < árbol->tamaño; ++i)
+        imprimir_línea(árbol->array[i]);
+    printf("\n");
 }
 
 void main(){
     montículo *arbolito = crear_montículo(200);
     int elección = escoger_orden();
-    ordenador("hola","hola",elección);
+    crear_línea(arbolito);
+    
+    imprimir_árbol(arbolito);
 }
