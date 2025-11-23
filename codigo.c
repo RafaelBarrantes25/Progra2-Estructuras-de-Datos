@@ -19,6 +19,8 @@ int eleccion = 0;
 // Variable global para numerar la impresión de los artículos
 int num_Impreso = 1;
 
+// Variable global para la cantidad de resultados a mostrar
+int cantidad = 0;
 
 // Pide la confirmación del usuario de que el programa puede seguir
 void tiempoFuera(){
@@ -79,6 +81,14 @@ int escoger_orden(){
         printf("Esa no es una opción\n");
         return escoger_orden();
     }
+}
+
+
+int escoger_cantidad(){
+    printf("¿Cuántos resultados quiere mostrar? ");
+    scanf("%d", &cantidad);
+    printf("\n");
+    getchar();
 }
 
 
@@ -304,14 +314,15 @@ void imprimir_linea(const char *linea){
 
     char *nombre = strtok(copia_string,DELIMITADOR);
     char *apellidos = strtok(NULL, DELIMITADOR);
-    char *título = strtok(NULL,DELIMITADOR);
+    char *titulo = strtok(NULL,DELIMITADOR);
     char *archivo = strtok(NULL, DELIMITADOR);
     char *anho = strtok(NULL,DELIMITADOR);
+    char *resumen = strtok(NULL,DELIMITADOR);
     //acá se puede cambiar formato según la opción escogida
     //if(eleccion blabla)
 
-    printf("\n\033[34m%d)\033[0m %s, %s  |  %s  |  %s\n",
-           num_Impreso,apellidos, nombre, título, anho);
+    printf("\n\033[34m%d)\033[0m %s  |  %s  |  %s\n",
+           num_Impreso, titulo, resumen, archivo);
     num_Impreso++;
 }
 
@@ -343,12 +354,13 @@ void reordenar_arbol(monticulo *arbol, int act){
 void imprimir_arbol(monticulo *arbol){
     monticulo *arbol_copia = arbol;
 
-    while(arbol_copia->tamano > 0){
+    while(arbol_copia->tamano > 0 && cantidad > 0){
         imprimir_linea(arbol_copia->array[0]);
         free(arbol_copia->array[0]);
         arbol_copia->array[0] = arbol_copia->array[arbol_copia->tamano - 1];
         reordenar_arbol(arbol_copia, 0);
         arbol_copia->tamano--;
+        cantidad--;
     }
     num_Impreso = 1;
 }
@@ -359,6 +371,8 @@ void main(){
     monticulo *arbolito = crear_monticulo(200);
     int eleccion = escoger_orden();
     crear_linea(arbolito);
+    
+    int cantidad = escoger_cantidad();
     
     imprimir_arbol(arbolito);
 }
