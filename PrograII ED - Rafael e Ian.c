@@ -12,7 +12,8 @@ const char *DELIMITADOR = "|";
 /*
  * Variable global, almacena el tipo de ordenamiento que se quiere hacer
  * 1 si es por título, 2 si es por por tamaño de título,
- * 3 si es por nombre del archivo, 4 si es por definir
+ * 3 si es por nombre del archivo, 4 si es por que tan viejos son
+ * 5 si es por que tan nuevos son
  */
 int eleccion = 0;
 
@@ -23,6 +24,7 @@ int num_Impreso = 1;
 int cantidad = 0;
 
 // Pide la confirmación del usuario de que el programa puede seguir
+// En este programa solo es usado para pruebas por el momento
 void tiempoFuera(){
 	printf("\nPresione ENTER para continuar\n");
 	while(getchar() != '\n'){}
@@ -30,7 +32,7 @@ void tiempoFuera(){
 
 
 typedef struct monticulo{
-    char **array;
+    char **array;    //Aquí se guardan los textos del archivo índice
     int tamano;      //Elementos actuales
     int capacidad;   //Elementos máximos
 } monticulo;
@@ -41,6 +43,7 @@ monticulo *crear_monticulo(int capacidad){
     monticulo *arbol = (monticulo *)malloc(sizeof(monticulo));
     
     if(!arbol){
+        printf("No se pudo crear el árbol\n");
         return NULL;
     }
     
@@ -50,12 +53,13 @@ monticulo *crear_monticulo(int capacidad){
 
     if(!arbol->array){
         free(arbol);
+        printf("No hay espacio para más textos en el árbol\n");
         return NULL;
     }
     return arbol;
 }
 
-
+//Intercambia los textos de dos campos del array del árbol
 void intercambiar(char **a, char **b){
     char *temporal = *a;
     *a = *b;
@@ -84,11 +88,13 @@ int escoger_orden(){
 }
 
 
+//Pregunta al usuario la cantidad de artículos a mostrar
 int escoger_cantidad(){
     printf("¿Cuántos resultados quiere mostrar? ");
     scanf("%d", &cantidad);
-    printf("\n");
     getchar();
+    printf("\n");
+    return cantidad;
 }
 
 
@@ -148,6 +154,11 @@ int ordenador(char *texto1, char *texto2){
     //la ubicación del archivo
     char *archivo1 = token1[3];
     char *archivo2 = token2[3];
+
+    //Función atoi(str) es el equivalente a int(str) en Python
+    //Posición 4 porque ahí están los años de publicación
+    int anho1 = atoi(token1[4]);
+    int anho2 = atoi(token2[4]);
     
     //Ordenar por título alfabéticamente
     if(eleccion == 1){
@@ -188,19 +199,11 @@ int ordenador(char *texto1, char *texto2){
         return strcmp(nombre_del_archivo_a_ordenar1,nombre_del_archivo_a_ordenar2);
         
     } else if(eleccion == 4){
-        //Caso año
-        //Los años de los artículos están en [4]
-        //Función atoi(str) es el equivalente a int(str) en Python
-        int anho1 = atoi(token1[4]);
-        int anho2 = atoi(token2[4]);
+        //Caso años más viejos
         return anho1-anho2;
         
     } else if(eleccion == 5){
-        //Caso año
-        //Los años de los artículos están en [4]
-        //Función atoi(str) es el equivalente a int(str) en Python
-        int anho1 = atoi(token1[4]);
-        int anho2 = atoi(token2[4]);
+        //Caso años más nuevos
         return anho2-anho1;
         
     } else{
@@ -210,14 +213,12 @@ int ordenador(char *texto1, char *texto2){
     }
 }
 
-//Esto añade la nueva línea como el árbol heap solicita, que es buscando al padre y
-//poniéndose en la posición. (i-1)/2, es la posición del padre
+/*
+ * Esto añade la nueva línea como el árbol heap solicita, que es \
+ * buscando al padre y poniéndose en la posición.
+ * (i-1)/2 es la posición del padre.
+ */
 void meter_arriba(monticulo *arbol, int indice){
-    /*arbol->tamano++;
-    imprimir_arbol(arbol);
-    arbol->tamano--;
-    printf("\n\033[31mNO HUBO AÚN INTERCAMBIO\033[0m\n");
-    tiempoFuera();*/
     int padre = floor((indice-1)/2);
     
     if(padre < 0){
@@ -228,34 +229,29 @@ void meter_arriba(monticulo *arbol, int indice){
     La función ordenador devuelve negativo si el primero es
     menor, por ende, como es una min heap, se intercambia
     */
-    int comprobar_intercambiar = ordenador(arbol->array[indice],arbol->array[padre]);
-        //printf("\033[34m%d - %d - %d\033[0m\n", comprobar_intercambiar, indice, padre);
-        //printf("%s\n%s\n",arbol->array[indice],arbol->array[padre]);
+    int comprobar_intercambiar = ordenador(arbol->array[indice],
+                                           arbol->array[padre]);
         
     while(indice > 0 && comprobar_intercambiar < 0){
-        //printf("\033[31m%d - %d - %d\033[0m\n", comprobar_intercambiar, indice, padre);
         //se intercambian si el que se acaba de insertar va de primero
         intercambiar(&arbol->array[indice],&arbol->array[padre]);
-        //printf("%s\n%s\n",arbol->array[indice],arbol->array[padre]);
 
         indice = padre;
         padre = floor((indice-1)/2);
-        comprobar_intercambiar = ordenador(arbol->array[indice],arbol->array[padre]);
+        comprobar_intercambiar = ordenador(arbol->array[indice],
+                                           arbol->array[padre]);
         
-        /*printf("---\n%s\n%s\n",arbol->array[indice],arbol->array[padre]);
-        arbol->tamano++;
-        imprimir_arbol(arbol);
-        arbol->tamano--;
-        printf("\n\033[34mHUBO INTERCAMBIO\033[0m\n");
-        tiempoFuera();*/
     }
     
+    // Caso final (Posible, tal vez, supongo)
     if(indice == 0 && comprobar_intercambiar < 0){
         //se intercambian si el que se acaba de insertar va de primero
         intercambiar(&arbol->array[indice], &arbol->array[padre]);
     }
 }
 
+
+// Mete un nuevo string en el array del árbol
 void insertar_en_monticulo(monticulo *arbol, char *linea_nueva){
     if(arbol -> tamano >= arbol -> capacidad){
         printf("El árbol ya está lleno\n");
@@ -264,12 +260,12 @@ void insertar_en_monticulo(monticulo *arbol, char *linea_nueva){
     }
     
     arbol -> array[arbol->tamano] = linea_nueva;
-    //printf("\n\033[32mSE AÑADIÓ UN ARTÍCULO\033[0m\n");
     meter_arriba(arbol, arbol->tamano);
     arbol->tamano++;
-    
 }
 
+
+// Esto crea strings con la información del archivo índice, separando en '\n'
 int crear_linea(monticulo *arbol){
     //Basado en https://www.youtube.com/watch?v=eIlcl-mt3tg
     FILE *archivo = fopen("archivo.txt","r");
@@ -287,14 +283,16 @@ int crear_linea(monticulo *arbol){
     //fgets lee los caracteres en una línea
     while(fgets(buffer, TAMANO_BUFFER, archivo) != NULL){
         int largo = strlen(buffer);
-        //Esto cambia saltos de línea por nulo, para poder usar funciones de strings
-        //similar a lo de ensamblador del billonario
+        /* Esto cambia saltos de línea por nulo, para poder usar \
+         * funciones de strings. 
+         * Similar a lo de arqui del billonario
+         */
         if(largo > 0 && buffer[largo-1] == '\n'){
             buffer[largo-1] = '\0';
         }
-        //Se crea el espacio para la línea nueva del tamaño del buffer +1 por el \0
+        //Se crea el espacio para la línea nueva del tamaño del buffer \
+          +1 por el '\0'.
         char *nueva_linea = (char *)malloc(largo+1);
-
 
         strcpy(nueva_linea,buffer);
         insertar_en_monticulo(arbol, nueva_linea);
@@ -326,25 +324,30 @@ void imprimir_linea(const char *linea){
     num_Impreso++;
 }
 
-
+/*
+ * Revisa cual de un nodo padre y sus dos hijos es menor.
+ * Intercambia con el menor y repite hasta que el nodo original esté \
+ * donde debería estar en el árbol.
+ */
 void reordenar_arbol(monticulo *arbol, int act){
     int izq = 2*act + 1;
     int der = 2*act + 2;
     int menor = act;
 
-    if (izq < arbol->tamano &&
-        ordenador(arbol->array[izq], arbol->array[menor]) < 0) {
+    if (izq < arbol->tamano && ordenador(arbol->array[izq],
+                                         arbol->array[menor]) < 0){
         menor = izq;
     }
 
-    if (der < arbol->tamano &&
-        ordenador(arbol->array[der], arbol->array[menor]) < 0) {
+    if (der < arbol->tamano && ordenador(arbol->array[der],
+                                         arbol->array[menor]) < 0){
         menor = der;
     }
 
-    // ya está ordenado
-    if (menor == act)
+    // Caso de que ya esté ordenado
+    if (menor == act){
         return;
+    }
 
     intercambiar(&arbol->array[act], &arbol->array[menor]);
     reordenar_arbol(arbol, menor);
@@ -352,6 +355,7 @@ void reordenar_arbol(monticulo *arbol, int act){
 
 
 void imprimir_arbol(monticulo *arbol){
+    // Crea una copia en caso de que se necesite el árbol original a futuro
     monticulo *arbol_copia = arbol;
 
     while(arbol_copia->tamano > 0 && cantidad > 0){
@@ -362,6 +366,8 @@ void imprimir_arbol(monticulo *arbol){
         arbol_copia->tamano--;
         cantidad--;
     }
+    // En caso de que se necesite imprimir el árbol varias veces \
+       durante una ejecución.
     num_Impreso = 1;
 }
 
